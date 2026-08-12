@@ -22,3 +22,4 @@ trade-offs — culminating in a full capstone design.
 | 12 | [Capstone: Full HLD Case Study](12-capstone-case-study/README.md) |
 
 Previous: [Part 2 — Advanced GenAI Engineering](../part-2-advanced-engineering/README.md)
+Next: [Part 4 — Capstone Build: The TFE Agent, From Scratch](../part-4-capstone-build-tfe-agent/README.md)

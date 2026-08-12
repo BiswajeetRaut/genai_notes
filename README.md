@@ -9,16 +9,19 @@ principles, an architecture/flow diagram, a scenario walkthrough, runnable-looki
 (Python + LangChain/LangGraph/Pydantic), production pitfalls, and exercises. See
 [docs/style-guide.md](docs/style-guide.md) for the exact template every module follows.
 
-> **Status**: complete. All 32 modules across all 3 parts are fully written.
+> **Status**: complete. 32 modules across Parts 1-3, plus a 6-phase build-from-scratch
+> capstone in Part 4 — 38 documents total.
 
 ## How to use this repo
 
 - Go in order the first time — later modules assume earlier ones.
 - Each module is a folder with a `README.md`. Start at Part 1, Module 1.
-- Three recurring fictional systems are used throughout so scenarios build on each other
-  instead of resetting every module: **Northwind** (e-commerce support bot), **Aster Health**
-  (compliance-heavy healthcare bot), and **Ledger** (fintech doc-ingestion-at-scale capstone).
-  Details in [docs/style-guide.md](docs/style-guide.md).
+- Three recurring fictional systems are used throughout Parts 1-3 so scenarios build on each
+  other instead of resetting every module: **Northwind** (e-commerce support bot),
+  **Aster Health** (compliance-heavy healthcare bot), and **Ledger** (fintech
+  doc-ingestion-at-scale capstone). Details in [docs/style-guide.md](docs/style-guide.md).
+  Part 4 uses its own single running system, **TFE Agent**, built as one continuous
+  MVP-to-production story rather than a single design doc.
 
 ## The learning path
 
@@ -60,7 +63,16 @@ flowchart TD
         C11 --> C12[Capstone: Full HLD Case Study]
     end
 
-    P1 --> P2 --> P3
+    subgraph P4["Part 4 — Capstone Build: TFE Agent"]
+        direction TB
+        D1[Phase 1: MVP] --> D2[Phase 2: 100K Users]
+        D2 --> D3[Phase 3: Event-Driven + Multimodal RAG]
+        D3 --> D4[Phase 4: DB & Tenant Isolation]
+        D4 --> D5[Phase 5: 1M Requests — Vector Crisis]
+        D5 --> D6[Phase 6: Final Architecture, Assembled]
+    end
+
+    P1 --> P2 --> P3 --> P4
 ```
 
 ## Part 1 — Foundations
@@ -109,5 +121,21 @@ flowchart TD
 | 10 | [Database Scaling Strategies](part-3-system-design/10-database-scaling-strategies/README.md) | 🟢 complete |
 | 11 | [Server & Compute Scaling](part-3-system-design/11-server-and-compute-scaling/README.md) | 🟢 complete |
 | 12 | [Capstone: Full HLD Case Study (Ledger)](part-3-system-design/12-capstone-case-study/README.md) | 🟢 complete |
+
+## Part 4 — Capstone Build: The TFE Agent, From Scratch
+
+A single continuous story — one system, six phases, MVP to production — rather than
+independent modules. Each phase recaps where the last one left off and ends on the specific
+symptom that forces the next. See [Part 4's README](part-4-capstone-build-tfe-agent/README.md)
+for the full scenario setup.
+
+| # | Phase | Status |
+|---|-------|--------|
+| 1 | [MVP](part-4-capstone-build-tfe-agent/01-mvp/README.md) | 🟢 complete |
+| 2 | [Scaling to 100K Users](part-4-capstone-build-tfe-agent/02-scaling-to-100k-users/README.md) | 🟢 complete |
+| 3 | [Event-Driven Ingestion & Multimodal RAG](part-4-capstone-build-tfe-agent/03-event-driven-ingestion-and-multimodal-rag/README.md) | 🟢 complete |
+| 4 | [Database & Tenant Isolation at Scale](part-4-capstone-build-tfe-agent/04-database-and-tenant-isolation-at-scale/README.md) | 🟢 complete |
+| 5 | [Scaling to 1M Requests: the Vector Retrieval Crisis](part-4-capstone-build-tfe-agent/05-scaling-to-1m-requests-vector-retrieval-crisis/README.md) | 🟢 complete |
+| 6 | [Final Architecture: the TFE Agent, Assembled](part-4-capstone-build-tfe-agent/06-final-architecture-the-tfe-agent/README.md) | 🟢 complete |
 
 Legend: 🟡 stub (objectives + outline only) · 🟢 complete

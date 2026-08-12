@@ -184,6 +184,12 @@ scaling treatment as traffic volume actually demands it. This phasing mirrors th
 structure: basics first, advanced techniques adopted based on measured need, system-design
 rigor applied as scale actually arrives — not speculatively upfront.
 
-This is the end of the course. Every module from
-[GenAI & LLM Basics](../../part-1-foundations/01-genai-and-llm-basics/README.md) through here
-has a concrete, justified place in this final design.
+Every module from [GenAI & LLM Basics](../../part-1-foundations/01-genai-and-llm-basics/README.md)
+through here has a concrete, justified place in this final design.
+
+This capstone designed a finished system top-down, in one pass. Real systems don't get built
+that way — they start as an MVP and get scaled reactively, one traced failure at a time. That
+build-order version of this same discipline is the subject of
+[Part 4](../../part-4-capstone-build-tfe-agent/README.md).
+
+Next: [Part 4 — Capstone Build: The TFE Agent, From Scratch](../../part-4-capstone-build-tfe-agent/README.md)
