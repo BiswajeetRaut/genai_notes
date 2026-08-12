@@ -12,10 +12,8 @@ paraphrase. Hybrid search runs both and fuses the results.
 - Explain BM25 sparse retrieval conceptually and why it beats dense search on exact tokens.
 - Run dense and sparse retrieval in parallel over the same corpus.
 - Fuse two ranked lists with Reciprocal Rank Fusion (RRF) or weighted scoring.
-- Add a reranking stage (cross-encoder) on top of fused candidates and explain the
-  precision/latency trade-off.
-- Decide the retrieval budget: how many candidates per retriever, how many survive reranking,
-  how many reach the LLM.
+- Decide the retrieval budget: how many candidates per retriever to pull before handing the
+  fused pool off to reranking.
 
 ## Prerequisites
 
@@ -61,27 +59,18 @@ flowchart TD
     Q --> Sparse["Sparse retrieval\n(BM25)"]
     Dense -->|ranked list A| Fuse["Reciprocal Rank Fusion"]
     Sparse -->|ranked list B| Fuse
-    Fuse -->|fused candidates| Rerank["Cross-encoder reranker\n(optional, higher precision)"]
+    Fuse -->|fused candidates| Rerank["Reranking\n(next module)"]
     Rerank --> Final[Final top-k to LLM]
 ```
 
-### 4c.4 Reranking
+### 4c.4 Setting the retrieval budget
 
-A **cross-encoder** reranker scores each `(query, candidate)` pair jointly (unlike embedding
-similarity, which scores each independently and compares vectors afterward) — this is more
-accurate but far more computationally expensive, so it's only applied to the fused candidate
-set (e.g. top 20-30), not the whole corpus. The trade-off: reranking improves precision at the
-top of the results at the cost of added latency per query — worth it when answer quality
-matters more than shaving milliseconds, which is most RAG use cases outside of extremely
-latency-sensitive ones.
-
-### 4c.5 Setting the retrieval budget
-
-A typical pipeline: retrieve ~20-50 candidates from each of dense and sparse retrieval, fuse
-to a combined candidate pool, rerank down to the top 5-10, and pass those (not all fused
-candidates) into the final generation prompt — balancing recall (cast a wide net early) against
-context budget and reranking cost (narrow aggressively before the expensive/limited-budget
-stages).
+A typical pipeline retrieves ~20-50 candidates from each of dense and sparse retrieval and
+fuses them into one combined pool. That pool — not the raw dense or sparse lists individually
+— is what gets handed to the **next module's** reranking stage, which narrows it further
+before anything reaches the LLM. RRF gets the right candidates *somewhere* in the top of the
+fused list; it doesn't, on its own, reliably put the single best one in slot #1 — that's a
+separate problem with a separate fix, covered next.
 
 ## Scenario walkthrough
 
@@ -120,9 +109,9 @@ def reciprocal_rank_fusion(rank_lists: list[list[int]], k: int = 60) -> list[int
             scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank)
     return sorted(scores, key=scores.get, reverse=True)
 
-def hybrid_search(query: str, k_final: int = 8) -> list[int]:
+def hybrid_search(query: str, k_pool: int = 30) -> list[int]:
     fused = reciprocal_rank_fusion([dense_search(query), sparse_search(query)])
-    return fused[:k_final]  # optionally: rerank this pool with a cross-encoder before slicing
+    return fused[:k_pool]  # hand this pool to reranking (next module) before it reaches the LLM
 ```
 
 ## Production pitfalls
@@ -135,12 +124,13 @@ def hybrid_search(query: str, k_final: int = 8) -> list[int]:
 - **Comparing raw scores between dense and sparse instead of fusing by rank.** Score scales
   are incomparable; naive score-averaging without normalization produces poor fusion — use
   RRF or a properly calibrated weighted scheme.
-- **Reranking the entire corpus instead of a narrowed candidate pool.** Cross-encoders don't
-  scale to corpus-wide scoring — always narrow with dense/sparse retrieval first.
+- **Treating the fused list as final without reranking it.** RRF is good at surfacing the
+  right candidates *somewhere* near the top of a combined pool; it's not precise about which
+  single one belongs in slot #1 — see the next module for why that gap matters.
 - **Not tuning the retrieval budget per stage.** Too narrow early (e.g. k=5 from each
   retriever) loses recall before fusion even has a chance to help; too wide late (passing 30
-  chunks to the LLM) wastes context budget and reintroduces lost-in-the-middle risk (Module 1
-  §1.2).
+  unreranked chunks to the LLM) wastes context budget and reintroduces lost-in-the-middle risk
+  (Module 1 §1.2).
 
 ## Key takeaways
 
@@ -150,8 +140,8 @@ def hybrid_search(query: str, k_final: int = 8) -> list[int]:
   exact term/ID matching.
 - Reciprocal Rank Fusion combines differently-scaled ranked lists by rank position, avoiding
   score-comparability problems.
-- Reranking with a cross-encoder improves precision on a narrowed candidate pool, at a real
-  latency cost worth paying in most RAG applications.
+- The fused pool is an input to reranking, not the final answer to "what does the LLM see" —
+  that precision step is covered in the next module.
 - Not every "find this specific thing" problem is a retrieval problem — some are direct
   database lookups in disguise.
 
@@ -162,8 +152,8 @@ def hybrid_search(query: str, k_final: int = 8) -> list[int]:
    that make sense?
 2. Identify two more Northwind query types (beyond order IDs) where sparse retrieval likely
    outperforms dense retrieval alone.
-3. Argue for or against adding a reranking stage to a latency-sensitive real-time chat feature
-   versus an asynchronous batch-report-generation feature — where does the trade-off land
-   differently?
+3. `hybrid_search` above returns a pool of 30 candidates instead of a small final `k`. Explain
+   why deferring the final narrowing to a separate reranking stage, instead of just returning
+   the fused list's top 5-10 directly, is the right call.
 
-Next: [Corrective RAG (CRAG)](../04-corrective-rag-crag/README.md)
+Next: [Reranking](../06-reranking/README.md)

@@ -1,7 +1,7 @@
 # 4d. Corrective RAG (CRAG)
 
-Every technique so far — metadata filtering, HyDE, hybrid search — still assumes retrieval
-*found something reasonable* and just tries to make that more likely. Diagnostic cluster #4
+Every technique so far — metadata filtering, HyDE, hybrid search, reranking — still assumes
+retrieval *found something reasonable* and just tries to make that more likely. Diagnostic cluster #4
 from the overview was different in kind: a cluster of confidently wrong answers traced back to
 retrieval that returned an irrelevant or stale chunk, with the model happily generating from it
 anyway. Nothing built so far catches that after the fact. CRAG adds a grading step that checks
@@ -20,6 +20,7 @@ retrieval quality and actively corrects course instead of generating from garbag
 ## Prerequisites
 
 - [Hybrid Search](../03-hybrid-search/README.md)
+- [Reranking](../06-reranking/README.md)
 - [LangGraph Fundamentals](../../../part-1-foundations/03-langgraph-fundamentals/README.md)
 
 ## Core concepts

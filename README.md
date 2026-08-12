@@ -9,8 +9,8 @@ principles, an architecture/flow diagram, a scenario walkthrough, runnable-looki
 (Python + LangChain/LangGraph/Pydantic), production pitfalls, and exercises. See
 [docs/style-guide.md](docs/style-guide.md) for the exact template every module follows.
 
-> **Status**: complete. 32 modules across Parts 1-3, plus a 6-phase build-from-scratch
-> capstone in Part 4 — 38 documents total.
+> **Status**: complete. 33 modules across Parts 1-3, plus a 6-phase build-from-scratch
+> capstone in Part 4 — 39 documents total.
 
 ## How to use this repo
 
@@ -42,7 +42,7 @@ flowchart TD
         direction TB
         B1[Advanced Agent Architectures] --> B2[Context & Memory Mgmt at Scale]
         B2 --> B3[Caching in Agents]
-        B3 --> B4[Advanced Production RAG:<br/>metadata · HyDE · hybrid · CRAG · GraphRAG]
+        B3 --> B4[Advanced Production RAG:<br/>metadata · HyDE · hybrid · rerank · CRAG · GraphRAG]
         B4 --> B5[LLM Guardrails]
         B5 --> B6[LLM Gateway]
         B6 --> B7[LLMOps: Observability & Security]
@@ -99,6 +99,7 @@ flowchart TD
 | 4a | ↳ [Metadata Filtering & Query Construction](part-2-advanced-engineering/04-advanced-production-rag/01-metadata-filtering-and-query-construction/README.md) | 🟢 complete |
 | 4b | ↳ [HyDE](part-2-advanced-engineering/04-advanced-production-rag/02-hyde/README.md) | 🟢 complete |
 | 4c | ↳ [Hybrid Search](part-2-advanced-engineering/04-advanced-production-rag/03-hybrid-search/README.md) | 🟢 complete |
+| 4f | ↳ [Reranking](part-2-advanced-engineering/04-advanced-production-rag/06-reranking/README.md) | 🟢 complete |
 | 4d | ↳ [Corrective RAG (CRAG)](part-2-advanced-engineering/04-advanced-production-rag/04-corrective-rag-crag/README.md) | 🟢 complete |
 | 4e | ↳ [GraphRAG](part-2-advanced-engineering/04-advanced-production-rag/05-graphrag/README.md) | 🟢 complete |
 | 5 | [LLM Guardrails](part-2-advanced-engineering/05-llm-guardrails/README.md) | 🟢 complete |

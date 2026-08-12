@@ -113,7 +113,7 @@ flowchart TD
     Sup -->|infra task| TaskA["Ad Hoc Infra Tasks Agent\n(new this phase)"]
     Sup -->|reporting/RCA| RptA["Reporting / RCA Agent\n(new this phase)"]
 
-    OnA --> RAGPipe["Full RAG pipeline\n(Phase 5: metadata filter + HyDE\n+ hybrid + CRAG)"]
+    OnA --> RAGPipe["Full RAG pipeline\n(Phase 5: metadata filter + HyDE\n+ hybrid + rerank + CRAG)"]
     RAGPipe --> VDB["Sharded vector index\n(Phase 5, by team/space)"]
 
     WsA -->|above blast-radius threshold| HITL[Human approval gate]

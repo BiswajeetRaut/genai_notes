@@ -35,6 +35,7 @@ overview taught for a hypothetical Northwind system, now run for real:
 | "Branch protection?" and similarly terse questions retrieve nothing useful | Query-answer embedding asymmetry | [HyDE](../../part-2-advanced-engineering/04-advanced-production-rag/02-hyde/README.md) |
 | A question about Team A's workspace naming policy retrieves Team B's similar-sounding but wrong policy page | No structural scoping on retrieval, only semantic similarity | [Metadata Filtering](../../part-2-advanced-engineering/04-advanced-production-rag/01-metadata-filtering-and-query-construction/README.md) — filter by `team`, `space`, `doc_type` |
 | Exact resource identifiers (workspace names, repo slugs) aren't retrieved even when present verbatim in a page | Dense-only retrieval is weak on exact tokens | [Hybrid Search](../../part-2-advanced-engineering/04-advanced-production-rag/03-hybrid-search/README.md) |
+| The right runbook is in the retrieved pool but buried a few slots down, crowded out by generic onboarding pages that score well on both retrievers | Fusion ranking is a coarse relevance signal, not a precise one | [Reranking](../../part-2-advanced-engineering/04-advanced-production-rag/06-reranking/README.md) |
 | The agent confidently answers using a page that was correct last month but has since been superseded, despite Phase 3's event-driven sync (a race: the question arrives seconds before an update event finishes propagating) | No self-check on retrieval currency | [Corrective RAG (CRAG)](../../part-2-advanced-engineering/04-advanced-production-rag/04-corrective-rag-crag/README.md) |
 | p95 query latency creeps upward as the single vector index grows | A single unsharded index straining under both volume and concurrent query load | [Database Scaling Strategies](../../part-3-system-design/10-database-scaling-strategies/README.md) — shard by `team`/`space` |
 
@@ -54,9 +55,13 @@ than adding new capture logic. HyDE is gated to fire only on short queries (unde
 threshold), following
 [HyDE](../../part-2-advanced-engineering/04-advanced-production-rag/02-hyde/README.md) §4b.4's
 guidance not to pay its extra-call cost on every request. Hybrid search (dense + BM25, fused
-with Reciprocal Rank Fusion) is added as the default retrieval path, not an optional mode. CRAG
-wraps the whole retrieval step with a grading pass, with its refine-and-fallback branches capped
-at two attempts per [CRAG](../../part-2-advanced-engineering/04-advanced-production-rag/04-corrective-rag-crag/README.md)'s
+with Reciprocal Rank Fusion) is added as the default retrieval path, not an optional mode, with
+a [reranking](../../part-2-advanced-engineering/04-advanced-production-rag/06-reranking/README.md)
+pass over the fused pool before anything reaches CRAG's grading step — cheap relative to the
+generation call it protects, and the fix for exactly the "right runbook, wrong position" symptom
+this phase's diagnostic table found. CRAG wraps the whole retrieval step with a grading pass,
+with its refine-and-fallback branches capped at two attempts per
+[CRAG](../../part-2-advanced-engineering/04-advanced-production-rag/04-corrective-rag-crag/README.md)'s
 bounded-loop requirement.
 
 ```mermaid
@@ -65,8 +70,9 @@ flowchart TD
     QC --> HyDE{Short query?}
     HyDE -->|yes| GenHyp[Generate hypothetical answer]
     HyDE -->|no| Hybrid
-    GenHyp --> Hybrid["Hybrid search: dense + BM25\nfiltered by team/space, fused + reranked"]
-    Hybrid --> Grade[CRAG grading]
+    GenHyp --> Hybrid["Hybrid search: dense + BM25\nfiltered by team/space, fused via RRF"]
+    Hybrid --> Rerank["Reranking:\ncross-encoder over the fused pool"]
+    Rerank --> Grade[CRAG grading]
     Grade -->|correct| Gen[Generate answer]
     Grade -->|ambiguous, retry ≤ 2| Refine[Refine query] --> Hybrid
     Grade -->|incorrect| Fallback["I don't have current information\non this — escalate"]
