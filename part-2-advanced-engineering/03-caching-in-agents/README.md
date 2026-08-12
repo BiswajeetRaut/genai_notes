@@ -77,11 +77,11 @@ with the same key and returns the original result without re-executing the side 
 
 ```mermaid
 flowchart LR
-    subgraph Safe to cache
-        R1[lookup_shipping_policy] --> Cache1[(TTL cache)]
+    subgraph S1["Safe to cache"]
+        R1[lookup_shipping_policy] --> Cache1[("TTL cache")]
         R2[lookup_order_status] --> Cache1
     end
-    subgraph Never cache — use idempotency keys instead
+    subgraph S2["Never cache - use idempotency keys instead"]
         W1[issue_refund] --> Idem[Idempotency-keyed execution]
         W2[update_shipping_address] --> Idem
     end
